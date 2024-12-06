@@ -1,0 +1,46 @@
+#include <Servo.h>  
+
+#define TRIG_PIN 2      // 초음파 센서 Trig 핀
+#define ECHO_PIN 3      // 초음파 센서 Echo 핀
+#define SERVO_PIN 6     // 서보모터 핀
+
+Servo servoMotor;  
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT);  
+  pinMode(ECHO_PIN, INPUT);   
+  
+  servoMotor.attach(SERVO_PIN);  // 서보모터를 핀 6에 연결
+  servoMotor.write(0);           // 초기 각도는 0도로 설정
+  Serial.begin(9600);            // Serial 통신 시작
+}
+
+long getDistance() {
+  digitalWrite(TRIG_PIN, LOW);  
+  delayMicroseconds(2);         
+  digitalWrite(TRIG_PIN, HIGH); 
+  delayMicroseconds(10);        
+  digitalWrite(TRIG_PIN, LOW);  
+
+  long duration = pulseIn(ECHO_PIN, HIGH);  
+  long distance = duration * 0.034 / 2;    
+  return distance;
+}
+
+void loop() {
+  long distance = getDistance();  
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 0 && distance <= 50) {  
+    // 초음파 센서로 측정된 거리에 따라 서보모터 각도 조절
+    int angle = map(distance, 50, 0, 0, 90);  
+    servoMotor.write(angle);  
+  } else {
+    // 거리가 50cm 이상일 경우, 서보모터 닫음
+    servoMotor.write(0);  
+  }
+
+  delay(100);  // 0.1초 대기 후 반복
+}
